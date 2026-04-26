@@ -6,12 +6,13 @@ from datetime import datetime
 import anthropic
 
 from polymarket_fetch import fetch_all, build_data_summary, fmt_usd, format_outcomes
+from sheets_logger import log_to_sheets
 
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
 ANTHROPIC_API_KEY  = os.environ["ANTHROPIC_API_KEY"]
 GMAIL_ADDRESS      = os.environ["GMAIL_ADDRESS_ALGGRA"]
 GMAIL_APP_PASSWORD = os.environ["GMAIL_PASSWORD_ALGGRA"]
-RECIPIENT          = os.environ["RECIPIENT_EMAIL"] # sends to yourself; change if needed
+RECIPIENT          = os.environ["RECIPIENT_EMAIL"]
 
 
 # ─── STEP 1: FETCH DATA ──────────────────────────────────────────────────────
@@ -21,12 +22,17 @@ data_summary = build_data_summary(data)
 print("Data fetched.")
 
 
-# ─── STEP 2: CALL CLAUDE FOR ANALYSIS ────────────────────────────────────────
+# ─── STEP 2: LOG TO GOOGLE SHEETS ────────────────────────────────────────────
+print("Logging to Google Sheets...")
+log_to_sheets(data)
+
+
+# ─── STEP 3: CALL CLAUDE FOR ANALYSIS ────────────────────────────────────────
 print("Calling Claude for analysis...")
 
-SYSTEM_PROMPT = """You are a sharp, concise analyst who reads prediction market data 
-and extracts genuine insight. You write in plain English — no fluff, no filler. 
-You think like a trader and a journalist at once: what does this data actually mean, 
+SYSTEM_PROMPT = """You are a sharp, concise analyst who reads prediction market data
+and extracts genuine insight. You write in plain English — no fluff, no filler.
+You think like a trader and a journalist at once: what does this data actually mean,
 what is the crowd pricing in, and what should a smart reader pay attention to today."""
 
 USER_PROMPT = f"""Here is today's Polymarket data snapshot:
@@ -36,31 +42,31 @@ USER_PROMPT = f"""Here is today's Polymarket data snapshot:
 Please provide a morning briefing with the following structure:
 
 1. MARKET OF THE DAY
-   The single most interesting signal from the data. Explain what's moving, 
-   why the momentum and uncertainty combination makes it worth watching, 
+   The single most interesting signal from the data. Explain what's moving,
+   why the momentum and uncertainty combination makes it worth watching,
    and what outcome the crowd is currently pricing in.
 
 2. KEY THEMES
-   2-3 sentences on the broader narrative across today's top markets. 
+   2-3 sentences on the broader narrative across today's top markets.
    Are there connections between categories? Any contradictions worth noting?
 
 3. CATEGORY HIGHLIGHTS
-   One sentence per category (Sports, Geopolitics, Culture, Finance) 
+   One sentence per category (Sports, Geopolitics, Culture, Finance)
    on the most notable market in each.
 
 4. WATCH LIST
-   2-3 markets from the signal feed that aren't already covered above 
+   2-3 markets from the signal feed that aren't already covered above
    but deserve attention today. Brief explanation for each.
 
 5. ONE CONTRARIAN TAKE
-   Pick one market where the crowd's implied probability seems off 
+   Pick one market where the crowd's implied probability seems off
    or where you'd push back on the consensus. Say why.
 
-Keep the whole thing under 500 words. Be direct and specific — 
+Keep the whole thing under 500 words. Be direct and specific —
 reference actual market names and probabilities from the data."""
 
-client   = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-message  = client.messages.create(
+client  = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+message = client.messages.create(
     model      = "claude-sonnet-4-5",
     max_tokens = 1000,
     messages   = [{"role": "user", "content": USER_PROMPT}],
@@ -70,7 +76,7 @@ analysis = message.content[0].text
 print("Analysis complete.")
 
 
-# ─── STEP 3: BUILD EMAIL ─────────────────────────────────────────────────────
+# ─── STEP 4: BUILD EMAIL ─────────────────────────────────────────────────────
 
 def fmt_event_block(event, vol_key="volume_24h"):
     vol   = event[vol_key]
@@ -149,25 +155,18 @@ html_body = f"""
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
              max-width:700px;margin:0 auto;padding:20px;color:#1e293b;background:#ffffff;">
 
-  <!-- HEADER -->
   <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);
               padding:24px;border-radius:12px;margin-bottom:24px;">
     <h1 style="color:white;margin:0;font-size:22px;">🎯 Polymarket Daily</h1>
     <p style="color:#e0e7ff;margin:4px 0 0;">{data['timestamp']}</p>
   </div>
 
-  <!-- CLAUDE ANALYSIS -->
   <div style="background:#f8fafc;border:1px solid #e2e8f0;
               border-radius:10px;padding:20px;margin-bottom:24px;">
-    <h2 style="margin-top:0;color:#1e293b;font-size:16px;">
-      ✦ Morning Analysis
-    </h2>
-    <div style="line-height:1.7;color:#334155;">
-      {analysis_html}
-    </div>
+    <h2 style="margin-top:0;color:#1e293b;font-size:16px;">✦ Morning Analysis</h2>
+    <div style="line-height:1.7;color:#334155;">{analysis_html}</div>
   </div>
 
-  <!-- CATEGORY SECTIONS -->
   {section_html("🔥 Top 3 by Total Volume",        data["top_volume"], "volume_all")}
   {section_html("🚀 Fastest Growing (24hr)",        data["fastest"],    "volume_24h")}
   {section_html("⚽ Sports",                        data["sports"],     "volume_24h")}
@@ -175,11 +174,8 @@ html_body = f"""
   {section_html("🎭 Culture",                       data["culture"],    "volume_24h")}
   {section_html("💹 Finance",                       data["finance"],    "volume_24h")}
 
-  <!-- SIGNAL FEED -->
   <h3 style="color:#1e293b;border-left:3px solid #6366f1;
-             padding-left:10px;margin-top:24px;">
-    ⚡ Signal Feed — Momentum × Uncertainty
-  </h3>
+             padding-left:10px;margin-top:24px;">⚡ Signal Feed — Momentum × Uncertainty</h3>
   <table style="width:100%;border-collapse:collapse;font-size:13px;">
     <thead>
       <tr style="background:#f1f5f9;color:#64748b;">
@@ -193,7 +189,6 @@ html_body = f"""
     <tbody>{signal_rows}</tbody>
   </table>
 
-  <!-- FOOTER -->
   <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;
               color:#94a3b8;font-size:12px;text-align:center;">
     Data: gamma-api.polymarket.com &nbsp;·&nbsp;
@@ -206,7 +201,7 @@ html_body = f"""
 """
 
 
-# ─── STEP 4: SEND EMAIL ───────────────────────────────────────────────────────
+# ─── STEP 5: SEND EMAIL ───────────────────────────────────────────────────────
 print("Sending email...")
 
 date_str = datetime.utcnow().strftime("%a %d %b")
