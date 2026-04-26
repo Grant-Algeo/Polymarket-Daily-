@@ -61,7 +61,7 @@ reference actual market names and probabilities from the data."""
 
 client   = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 message  = client.messages.create(
-    model      = "claude-sonnet-4-20250514",
+    model      = "claude-sonnet-4-5",
     max_tokens = 1000,
     messages   = [{"role": "user", "content": USER_PROMPT}],
     system     = SYSTEM_PROMPT,
