@@ -70,12 +70,12 @@ polymarket-daily/
 
 Add the following as GitHub repository secrets (`Settings → Secrets and variables → Actions`):
 
-| Secret | Description |
-|---|---|
-| `ANTHROPIC_API_KEY` | Your Anthropic API key |
-| `GMAIL_ADDRESS_ALGGRA` | Gmail address used to send the email |
-| `GMAIL_PASSWORD_ALGGRA` | Gmail App Password (16 characters, no spaces) |
-| `RECIPIENT_EMAIL` | Address to receive the daily briefing |
+| Secret |
+|---|
+| `ANTHROPIC_API_KEY` |
+| `GMAIL_ADDRESS_ALGGRA` |
+| `GMAIL_PASSWORD_ALGGRA` | 
+| `RECIPIENT_EMAIL` |
 
 ### Running manually
 
