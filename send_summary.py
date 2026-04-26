@@ -9,9 +9,9 @@ from polymarket_fetch import fetch_all, build_data_summary, fmt_usd, format_outc
 
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
 ANTHROPIC_API_KEY  = os.environ["ANTHROPIC_API_KEY"]
-GMAIL_ADDRESS      = os.environ["GMAIL_ADDRESS"]
-GMAIL_APP_PASSWORD = os.environ["GMAIL_APP_PASSWORD"]
-RECIPIENT          = GMAIL_ADDRESS  # sends to yourself; change if needed
+GMAIL_ADDRESS      = os.environ["GMAIL_ADDRESS_ALGGRA"]
+GMAIL_APP_PASSWORD = os.environ["GMAIL_PASSWORD_ALGGRA"]
+RECIPIENT          = os.environ["RECIPIENT_EMAIL"] # sends to yourself; change if needed
 
 
 # ─── STEP 1: FETCH DATA ──────────────────────────────────────────────────────
