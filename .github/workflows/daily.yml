@@ -23,7 +23,8 @@ jobs:
 
       - name: Fetch Polymarket data and send summary
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GMAIL_ADDRESS:     ${{ secrets.GMAIL_ADDRESS }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+  ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
+  GMAIL_ADDRESS_ALGGRA: ${{ secrets.GMAIL_ADDRESS_ALGGRA }}
+  GMAIL_PASSWORD_ALGGRA: ${{ secrets.GMAIL_PASSWORD_ALGGRA }}
+  RECIPIENT_EMAIL:      ${{ secrets.RECIPIENT_EMAIL }}
         run: python send_summary.py
