@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests anthropic
+        run: pip install requests anthropic cryptography
 
       - name: Fetch Polymarket data and send summary
         env:
@@ -27,4 +27,6 @@ jobs:
           GMAIL_ADDRESS_ALGGRA: ${{ secrets.GMAIL_ADDRESS_ALGGRA }}
           GMAIL_PASSWORD_ALGGRA: ${{ secrets.GMAIL_PASSWORD_ALGGRA }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: python send_summary.py
